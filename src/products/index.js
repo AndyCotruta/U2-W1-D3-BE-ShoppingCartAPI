@@ -84,6 +84,16 @@ productsRouter.put("/:productId", async (req, res, next) => {
         where: { id: productId },
         returning: true,
       });
+    if (req.body.categories) {
+      await ProductsCategoriesModel.bulkCreate(
+        req.body.categories.map((category) => {
+          return {
+            categoryId: category,
+            productId,
+          };
+        })
+      );
+    }
     if (numberOfUpdatedProducts === 1) {
       res.send(updatedProducts[0]);
     } else {
