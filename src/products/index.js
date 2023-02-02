@@ -2,13 +2,29 @@ import express from "express";
 import createHttpError from "http-errors";
 import { Op } from "sequelize";
 import ProductModel from "./model.js";
+import ReviewModel from "../reviews/model.js";
+import ProductsCategoriesModel from "./productsCategoriesModel.js";
+import CategoryModel from "../categories/model.js";
+import UserModel from "../users/model.js";
 
 const productsRouter = express.Router();
 
 productsRouter.post("/", async (req, res, next) => {
   try {
-    const { id } = await ProductModel.create(req.body);
-    res.status(201).send(`Product with id ${id} was created successfully`);
+    const { productId } = await ProductModel.create(req.body);
+    if (req.body.categories) {
+      await ProductsCategoriesModel.bulkCreate(
+        req.body.categories.map((category) => {
+          return {
+            categoryId: category,
+            productId,
+          };
+        })
+      );
+    }
+    res
+      .status(201)
+      .send(`Product with id ${productId} was created successfully`);
   } catch (error) {
     next(error);
   }
@@ -25,6 +41,11 @@ productsRouter.get("/", async (req, res, next) => {
     const products = await ProductModel.findAll({
       where: { ...query },
       attributes: { exclude: ["createdAt", "updatedAt"] },
+      include: [
+        { model: CategoryModel },
+        { model: ReviewModel, include: { model: UserModel } },
+      ],
+      // include: { model: ReviewModel },
     });
     res.send(products);
   } catch (error) {
@@ -35,6 +56,19 @@ productsRouter.get("/", async (req, res, next) => {
 productsRouter.get("/:productId", async (req, res, next) => {
   const productId = req.params.productId;
   const product = await ProductModel.findByPk(productId);
+  if (product) {
+    res.send(product);
+  } else {
+    next(createHttpError(404, `Product with id ${productId} not found`));
+  }
+});
+productsRouter.get("/:productId/reviews", async (req, res, next) => {
+  const productId = req.params.productId;
+  const product = await ProductModel.findByPk(productId, {
+    include: {
+      model: ReviewModel,
+    },
+  });
   if (product) {
     res.send(product);
   } else {
@@ -64,7 +98,7 @@ productsRouter.delete("/:productId", async (req, res, next) => {
   try {
     const productId = req.params.productId;
     const numberOfDeletedProducts = await ProductModel.destroy({
-      where: { id: productId },
+      where: { productId: productId },
     });
     if (numberOfDeletedProducts) {
       res.status(204).send();

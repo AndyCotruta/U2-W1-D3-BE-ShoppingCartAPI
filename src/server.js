@@ -3,6 +3,9 @@ import cors from "cors";
 import listEndpoints from "express-list-endpoints";
 import { pgConnect, syncModels } from "./db.js";
 import productsRouter from "./products/index.js";
+import categoriesRouter from "./categories/index.js";
+import usersRouter from "./users/index.js";
+import reviewsRouter from "./reviews/index.js";
 
 const server = express();
 
@@ -12,6 +15,9 @@ server.use(cors());
 server.use(express.json());
 
 server.use("/products", productsRouter);
+server.use("/categories", categoriesRouter);
+server.use("/users", usersRouter);
+server.use("/reviews", reviewsRouter);
 
 await pgConnect();
 await syncModels();
