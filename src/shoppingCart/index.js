@@ -1,6 +1,7 @@
 import express from "express";
 import createHttpError from "http-errors";
 import ProductModel from "../products/model.js";
+import ProductsShoppingCartsModel from "../products/productsShoppingCartsModel.js";
 import ShoppingCartModel from "./model.js";
 
 const shoppingCartRouter = express.Router();
@@ -8,6 +9,16 @@ const shoppingCartRouter = express.Router();
 shoppingCartRouter.post("/", async (req, res, next) => {
   try {
     const { id } = await ShoppingCartModel.create(req.body);
+    if (req.body.products) {
+      await ProductsShoppingCartsModel.bulkCreate(
+        req.body.products.map((product) => {
+          return {
+            productId: product,
+            shoppingCartId: id,
+          };
+        })
+      );
+    }
     res
       .status(201)
       .send(`Shopping cart with id ${id} was created successfully`);
@@ -19,7 +30,11 @@ shoppingCartRouter.post("/", async (req, res, next) => {
 shoppingCartRouter.get("/", async (req, res, next) => {
   try {
     const shoppingCarts = await ShoppingCartModel.findAll({
-      include: { model: ProductModel },
+      include: {
+        model: ProductModel,
+        attributes: ["name", "description", "image", "price"],
+        through: { attributes: [] },
+      },
     });
     res.send(shoppingCarts);
   } catch (error) {

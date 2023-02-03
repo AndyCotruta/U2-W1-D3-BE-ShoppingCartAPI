@@ -12,10 +12,6 @@ const ShoppingCartModel = sequelize.define("shopping_cart", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  products: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
-    allowNull: false,
-  },
   total: {
     type: DataTypes.INTEGER,
     allowNull: false,
