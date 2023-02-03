@@ -55,7 +55,12 @@ productsRouter.get("/", async (req, res, next) => {
 
 productsRouter.get("/:productId", async (req, res, next) => {
   const productId = req.params.productId;
-  const product = await ProductModel.findByPk(productId);
+  const product = await ProductModel.findByPk(productId, {
+    include: [
+      { model: CategoryModel },
+      { model: ReviewModel, include: { model: UserModel } },
+    ],
+  });
   if (product) {
     res.send(product);
   } else {
@@ -81,10 +86,12 @@ productsRouter.put("/:productId", async (req, res, next) => {
     const productId = req.params.productId;
     const [numberOfUpdatedProducts, updatedProducts] =
       await ProductModel.update(req.body, {
-        where: { id: productId },
+        where: { productId: productId },
+        include: { model: CategoryModel },
         returning: true,
       });
     if (req.body.categories) {
+      await ProductsCategoriesModel.destroy({ where: { productId } });
       await ProductsCategoriesModel.bulkCreate(
         req.body.categories.map((category) => {
           return {
@@ -111,6 +118,9 @@ productsRouter.delete("/:productId", async (req, res, next) => {
       where: { productId: productId },
     });
     if (numberOfDeletedProducts) {
+      const numberOfDeletedReviews = await ProductsCategoriesModel.destroy({
+        where: { productProductId: productId },
+      });
       res.status(204).send();
     } else {
       next(createHttpError(404, `Product with id ${productId} not found`));

@@ -1,7 +1,9 @@
 import { DataTypes } from "sequelize";
 import CategoryModel from "../categories/model.js";
 import sequelize from "../db.js";
+import ShoppingCartModel from "../shoppingCart/model.js";
 import ProductsCategoriesModel from "./productsCategoriesModel.js";
+import ProductsShoppingCartsModel from "./productsShoppingCartsModel.js";
 
 const ProductModel = sequelize.define("products", {
   productId: {
@@ -35,6 +37,15 @@ ProductModel.belongsToMany(CategoryModel, {
 CategoryModel.belongsToMany(ProductModel, {
   through: ProductsCategoriesModel,
   foreignKey: { name: "categoryId", allowNull: false },
+});
+
+ProductModel.belongsToMany(ShoppingCartModel, {
+  through: ProductsShoppingCartsModel,
+  foreignKey: { name: "productId", allowNull: false },
+});
+ShoppingCartModel.belongsToMany(ProductModel, {
+  through: ProductsShoppingCartsModel,
+  foreignKey: { name: "shoppingCartId", allowNull: false },
 });
 
 export default ProductModel;

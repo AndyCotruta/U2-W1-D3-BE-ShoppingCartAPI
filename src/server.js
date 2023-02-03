@@ -6,6 +6,7 @@ import productsRouter from "./products/index.js";
 import categoriesRouter from "./categories/index.js";
 import usersRouter from "./users/index.js";
 import reviewsRouter from "./reviews/index.js";
+import shoppingCartRouter from "./shoppingCart/index.js";
 
 const server = express();
 
@@ -18,6 +19,7 @@ server.use("/products", productsRouter);
 server.use("/categories", categoriesRouter);
 server.use("/users", usersRouter);
 server.use("/reviews", reviewsRouter);
+server.use("/shoppingCart", shoppingCartRouter);
 
 await pgConnect();
 await syncModels();
