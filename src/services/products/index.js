@@ -41,7 +41,10 @@ productsRouter.get("/", async (req, res, next) => {
       query.category = { [Op.iLike]: `${req.query.category}` };
     const products = await Product.findAll({
       where: { ...query },
-      include: [Review, { model: Category, through: { attributes: [] } }],
+      include: [
+        { model: Review, include: User },
+        { model: Category, through: { attributes: [] } },
+      ],
     });
     res.send(products);
   } catch (error) {

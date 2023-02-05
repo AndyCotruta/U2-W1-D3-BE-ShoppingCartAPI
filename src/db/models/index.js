@@ -5,10 +5,13 @@ import User from "./users.js";
 import ProductCategory from "./productCategory.js";
 import Cart from "./cart.js";
 
-Product.hasMany(Review, { onDelete: "CASCADE" });
+Product.hasMany(Review, {
+  onDelete: "CASCADE",
+  foreignKey: { allowNull: false },
+});
 Review.belongsTo(Product, { onDelete: "CASCADE" });
 
-User.hasMany(Review, { onDelete: "CASCADE" });
+User.hasMany(Review, { onDelete: "CASCADE", foreignKey: { allowNull: false } });
 Review.belongsTo(User, { onDelete: "CASCADE" });
 
 Category.belongsToMany(Product, {
