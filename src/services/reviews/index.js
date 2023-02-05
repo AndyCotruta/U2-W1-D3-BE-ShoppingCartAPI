@@ -1,13 +1,12 @@
 import express from "express";
 import createHttpError from "http-errors";
-import UserModel from "../users/model.js";
-import ReviewModel from "./model.js";
+import { Review, User } from "../../db/models/index.js";
 
 const reviewsRouter = express.Router();
 
 reviewsRouter.post("/", async (req, res, next) => {
   try {
-    const { reviewId } = await ReviewModel.create(req.body);
+    const { reviewId } = await Review.create(req.body);
     res.status(201).send(`Review with id ${reviewId} was created successfully`);
   } catch (error) {
     next(error);
@@ -16,11 +15,11 @@ reviewsRouter.post("/", async (req, res, next) => {
 
 reviewsRouter.get("/", async (req, res, next) => {
   try {
-    const reviews = await ReviewModel.findAll({
+    const reviews = await Review.findAll({
       attributes: {
         exclude: ["createdAt", "updatedAt"],
       },
-      include: { model: UserModel },
+      include: { model: User },
     });
     res.send(reviews);
   } catch (error) {
@@ -30,7 +29,7 @@ reviewsRouter.get("/", async (req, res, next) => {
 
 reviewsRouter.get("/:reviewId", async (req, res, next) => {
   const reviewId = req.params.reviewId;
-  const review = await ReviewModel.findByPk(reviewId);
+  const review = await Review.findByPk(reviewId);
   if (review) {
     res.send(review);
   } else {
@@ -41,7 +40,7 @@ reviewsRouter.get("/:reviewId", async (req, res, next) => {
 reviewsRouter.put("/:reviewId", async (req, res, next) => {
   try {
     const reviewId = req.params.reviewId;
-    const [numberOfUpdatedReviews, updatedReviews] = await ReviewModel.update(
+    const [numberOfUpdatedReviews, updatedReviews] = await Review.update(
       req.body,
       {
         where: { reviewId: reviewId },
@@ -61,7 +60,7 @@ reviewsRouter.put("/:reviewId", async (req, res, next) => {
 reviewsRouter.delete("/:reviewId", async (req, res, next) => {
   try {
     const reviewId = req.params.reviewId;
-    const numberOfDeletedReviews = await ReviewModel.destroy({
+    const numberOfDeletedReviews = await Review.destroy({
       where: { reviewId: reviewId },
     });
     if (numberOfDeletedReviews) {

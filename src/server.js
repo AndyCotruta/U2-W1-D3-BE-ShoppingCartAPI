@@ -1,12 +1,12 @@
 import express from "express";
 import cors from "cors";
 import listEndpoints from "express-list-endpoints";
-import { pgConnect, syncModels } from "./db.js";
-import productsRouter from "./products/index.js";
-import categoriesRouter from "./categories/index.js";
-import usersRouter from "./users/index.js";
-import reviewsRouter from "./reviews/index.js";
-import shoppingCartRouter from "./shoppingCart/index.js";
+import { pgConnect, syncModels } from "./db/db.js";
+import productsRouter from "./services//products/index.js";
+import categoriesRouter from "./services/categories/index.js";
+import usersRouter from "./services/users/index.js";
+import reviewsRouter from "./services/reviews/index.js";
+import cartRouter from "./services/cart/index.js";
 
 const server = express();
 
@@ -19,7 +19,7 @@ server.use("/products", productsRouter);
 server.use("/categories", categoriesRouter);
 server.use("/users", usersRouter);
 server.use("/reviews", reviewsRouter);
-server.use("/shoppingCart", shoppingCartRouter);
+server.use("/cart", cartRouter);
 
 await pgConnect();
 await syncModels();

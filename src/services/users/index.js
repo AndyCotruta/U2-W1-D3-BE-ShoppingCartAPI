@@ -1,14 +1,12 @@
 import express from "express";
 import createHttpError from "http-errors";
-import { Op } from "sequelize";
-import ReviewModel from "../reviews/model.js";
-import UserModel from "./model.js";
+import { Review, User } from "../../db/models/index.js";
 
 const usersRouter = express.Router();
 
 usersRouter.post("/", async (req, res, next) => {
   try {
-    const { userId } = await UserModel.create(req.body);
+    const { userId } = await User.create(req.body);
     res.status(201).send(`User with id ${userId} was created successfully`);
   } catch (error) {
     next(error);
@@ -17,7 +15,7 @@ usersRouter.post("/", async (req, res, next) => {
 
 usersRouter.get("/", async (req, res, next) => {
   try {
-    const users = await UserModel.findAll({
+    const users = await User.findAll({
       attributes: { exclude: ["createdAt", "updatedAt"] },
     });
     res.send(users);
@@ -28,7 +26,7 @@ usersRouter.get("/", async (req, res, next) => {
 
 usersRouter.get("/:userId", async (req, res, next) => {
   const userId = req.params.userId;
-  const user = await UserModel.findByPk(userId);
+  const user = await User.findByPk(userId);
   if (user) {
     res.send(user);
   } else {
@@ -38,9 +36,9 @@ usersRouter.get("/:userId", async (req, res, next) => {
 
 usersRouter.get("/:userId/reviews", async (req, res, next) => {
   const userId = req.params.userId;
-  const user = await UserModel.findByPk(userId, {
+  const user = await User.findByPk(userId, {
     include: {
-      model: ReviewModel,
+      model: Review,
     },
   });
   if (user) {
@@ -53,13 +51,10 @@ usersRouter.get("/:userId/reviews", async (req, res, next) => {
 usersRouter.put("/:userId", async (req, res, next) => {
   try {
     const userId = req.params.userId;
-    const [numberOfUpdatedUsers, updatedUsers] = await UserModel.update(
-      req.body,
-      {
-        where: { userId: userId },
-        returning: true,
-      }
-    );
+    const [numberOfUpdatedUsers, updatedUsers] = await User.update(req.body, {
+      where: { userId: userId },
+      returning: true,
+    });
     if (numberOfUpdatedUsers === 1) {
       res.send(updatedUsers[0]);
     } else {
@@ -73,7 +68,7 @@ usersRouter.put("/:userId", async (req, res, next) => {
 usersRouter.delete("/:userId", async (req, res, next) => {
   try {
     const userId = req.params.userId;
-    const numberOfDeletedUsers = await UserModel.destroy({
+    const numberOfDeletedUsers = await User.destroy({
       where: { userId: userId },
     });
     if (numberOfDeletedUsers) {

@@ -1,19 +1,20 @@
 import express from "express";
 import createHttpError from "http-errors";
 import { Op } from "sequelize";
-import ProductModel from "./model.js";
-import ReviewModel from "../reviews/model.js";
-import ProductsCategoriesModel from "./productsCategoriesModel.js";
-import CategoryModel from "../categories/model.js";
-import UserModel from "../users/model.js";
-
+import {
+  Product,
+  Review,
+  ProductCategory,
+  Category,
+  User,
+} from "../../db/models/index.js";
 const productsRouter = express.Router();
 
 productsRouter.post("/", async (req, res, next) => {
   try {
-    const { productId } = await ProductModel.create(req.body);
+    const { productId } = await Product.create(req.body);
     if (req.body.categories) {
-      await ProductsCategoriesModel.bulkCreate(
+      await ProductCategory.bulkCreate(
         req.body.categories.map((category) => {
           return {
             categoryId: category,
@@ -38,14 +39,14 @@ productsRouter.get("/", async (req, res, next) => {
       query.price = { [Op.between]: [req.query.minPrice, req.query.maxPrice] };
     if (req.query.category)
       query.category = { [Op.iLike]: `${req.query.category}` };
-    const products = await ProductModel.findAll({
+    const products = await Product.findAll({
       where: { ...query },
       attributes: { exclude: ["createdAt", "updatedAt"] },
       include: [
-        { model: CategoryModel },
-        { model: ReviewModel, include: { model: UserModel } },
+        { model: Category },
+        { model: Review, include: { model: User } },
       ],
-      // include: { model: ReviewModel },
+      // include: { model: Review },
     });
     res.send(products);
   } catch (error) {
@@ -55,11 +56,8 @@ productsRouter.get("/", async (req, res, next) => {
 
 productsRouter.get("/:productId", async (req, res, next) => {
   const productId = req.params.productId;
-  const product = await ProductModel.findByPk(productId, {
-    include: [
-      { model: CategoryModel },
-      { model: ReviewModel, include: { model: UserModel } },
-    ],
+  const product = await Product.findByPk(productId, {
+    include: [{ model: Category }, { model: Review, include: { model: User } }],
   });
   if (product) {
     res.send(product);
@@ -69,9 +67,9 @@ productsRouter.get("/:productId", async (req, res, next) => {
 });
 productsRouter.get("/:productId/reviews", async (req, res, next) => {
   const productId = req.params.productId;
-  const product = await ProductModel.findByPk(productId, {
+  const product = await Product.findByPk(productId, {
     include: {
-      model: ReviewModel,
+      model: Review,
     },
   });
   if (product) {
@@ -84,15 +82,17 @@ productsRouter.get("/:productId/reviews", async (req, res, next) => {
 productsRouter.put("/:productId", async (req, res, next) => {
   try {
     const productId = req.params.productId;
-    const [numberOfUpdatedProducts, updatedProducts] =
-      await ProductModel.update(req.body, {
+    const [numberOfUpdatedProducts, updatedProducts] = await Product.update(
+      req.body,
+      {
         where: { productId: productId },
-        include: { model: CategoryModel },
+        include: { model: Category },
         returning: true,
-      });
+      }
+    );
     if (req.body.categories) {
-      await ProductsCategoriesModel.destroy({ where: { productId } });
-      await ProductsCategoriesModel.bulkCreate(
+      await ProductCategory.destroy({ where: { productId } });
+      await ProductCategory.bulkCreate(
         req.body.categories.map((category) => {
           return {
             categoryId: category,
@@ -114,11 +114,11 @@ productsRouter.put("/:productId", async (req, res, next) => {
 productsRouter.delete("/:productId", async (req, res, next) => {
   try {
     const productId = req.params.productId;
-    const numberOfDeletedProducts = await ProductModel.destroy({
+    const numberOfDeletedProducts = await Product.destroy({
       where: { productId: productId },
     });
     if (numberOfDeletedProducts) {
-      const numberOfDeletedReviews = await ProductsCategoriesModel.destroy({
+      const numberOfDeletedReviews = await ProductCategory.destroy({
         where: { productProductId: productId },
       });
       res.status(204).send();

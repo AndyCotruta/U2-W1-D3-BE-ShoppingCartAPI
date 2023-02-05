@@ -1,16 +1,13 @@
 import express from "express";
 import createHttpError from "http-errors";
-import { Op } from "sequelize";
-import CategoryModel from "./model.js";
+import { Category } from "../../db/models/index.js";
 
 const categoriesRouter = express.Router();
 
 categoriesRouter.post("/", async (req, res, next) => {
   try {
-    const { categoryId } = await CategoryModel.create(req.body);
-    res
-      .status(201)
-      .send(`Category with id ${categoryId} was created successfully`);
+    const { id } = await Category.create(req.body);
+    res.status(201).send(`Category with id ${id} was created successfully`);
   } catch (error) {
     next(error);
   }
@@ -18,7 +15,7 @@ categoriesRouter.post("/", async (req, res, next) => {
 
 categoriesRouter.get("/", async (req, res, next) => {
   try {
-    const categories = await CategoryModel.findAll({
+    const categories = await Category.findAll({
       attributes: { exclude: ["createdAt", "updatedAt"] },
     });
     res.send(categories);
@@ -29,7 +26,7 @@ categoriesRouter.get("/", async (req, res, next) => {
 
 categoriesRouter.get("/:categoryId", async (req, res, next) => {
   const categoryId = req.params.categoryId;
-  const category = await CategoryModel.findByPk(categoryId);
+  const category = await Category.findByPk(categoryId);
   if (category) {
     res.send(category);
   } else {
@@ -41,8 +38,8 @@ categoriesRouter.put("/:categoryId", async (req, res, next) => {
   try {
     const categoryId = req.params.categoryId;
     const [numberOfUpdatedCategories, updatedCategories] =
-      await CategoryModel.update(req.body, {
-        where: { categoryId: categoryId },
+      await Category.update(req.body, {
+        where: { id: categoryId },
         returning: true,
       });
     if (numberOfUpdatedCategories === 1) {
@@ -58,8 +55,8 @@ categoriesRouter.put("/:categoryId", async (req, res, next) => {
 categoriesRouter.delete("/:categoryId", async (req, res, next) => {
   try {
     const categoryId = req.params.categoryId;
-    const numberOfDeletedCategories = await CategoryModel.destroy({
-      where: { categoryId: categoryId },
+    const numberOfDeletedCategories = await Category.destroy({
+      where: { id: categoryId },
     });
     if (numberOfDeletedCategories) {
       res.status(204).send();

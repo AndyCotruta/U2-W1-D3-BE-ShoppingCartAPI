@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../db.js";
 
-const ProductsShoppingCartsModel = sequelize.define("products_shoppingCart", {
+const Cart = sequelize.define("cart", {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -9,4 +9,4 @@ const ProductsShoppingCartsModel = sequelize.define("products_shoppingCart", {
   },
 });
 
-export default ProductsShoppingCartsModel;
+export default Cart;
