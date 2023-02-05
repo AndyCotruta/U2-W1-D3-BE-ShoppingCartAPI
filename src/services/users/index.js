@@ -6,8 +6,8 @@ const usersRouter = express.Router();
 
 usersRouter.post("/", async (req, res, next) => {
   try {
-    const { userId } = await User.create(req.body);
-    res.status(201).send(`User with id ${userId} was created successfully`);
+    const { id } = await User.create(req.body);
+    res.status(201).send(`User with id ${id} was created successfully`);
   } catch (error) {
     next(error);
   }
@@ -52,7 +52,7 @@ usersRouter.put("/:userId", async (req, res, next) => {
   try {
     const userId = req.params.userId;
     const [numberOfUpdatedUsers, updatedUsers] = await User.update(req.body, {
-      where: { userId: userId },
+      where: { id: userId },
       returning: true,
     });
     if (numberOfUpdatedUsers === 1) {
@@ -69,7 +69,7 @@ usersRouter.delete("/:userId", async (req, res, next) => {
   try {
     const userId = req.params.userId;
     const numberOfDeletedUsers = await User.destroy({
-      where: { userId: userId },
+      where: { id: userId },
     });
     if (numberOfDeletedUsers) {
       res.status(204).send();

@@ -12,20 +12,20 @@ const productsRouter = express.Router();
 
 productsRouter.post("/", async (req, res, next) => {
   try {
-    const { productId } = await Product.create(req.body);
+    const product = await Product.create(req.body);
     if (req.body.categories) {
       await ProductCategory.bulkCreate(
         req.body.categories.map((category) => {
           return {
             categoryId: category,
-            productId,
+            productId: product.id,
           };
         })
       );
     }
     res
       .status(201)
-      .send(`Product with id ${productId} was created successfully`);
+      .send(`Product with id ${product.id} was created successfully`);
   } catch (error) {
     next(error);
   }
@@ -41,12 +41,7 @@ productsRouter.get("/", async (req, res, next) => {
       query.category = { [Op.iLike]: `${req.query.category}` };
     const products = await Product.findAll({
       where: { ...query },
-      attributes: { exclude: ["createdAt", "updatedAt"] },
-      include: [
-        { model: Category },
-        { model: Review, include: { model: User } },
-      ],
-      // include: { model: Review },
+      include: [Review, { model: Category, through: { attributes: [] } }],
     });
     res.send(products);
   } catch (error) {
@@ -85,18 +80,18 @@ productsRouter.put("/:productId", async (req, res, next) => {
     const [numberOfUpdatedProducts, updatedProducts] = await Product.update(
       req.body,
       {
-        where: { productId: productId },
+        where: { id: productId },
         include: { model: Category },
         returning: true,
       }
     );
     if (req.body.categories) {
-      await ProductCategory.destroy({ where: { productId } });
+      await ProductCategory.destroy({ where: { productId: productId } });
       await ProductCategory.bulkCreate(
         req.body.categories.map((category) => {
           return {
             categoryId: category,
-            productId,
+            productId: updatedProducts[0].id,
           };
         })
       );

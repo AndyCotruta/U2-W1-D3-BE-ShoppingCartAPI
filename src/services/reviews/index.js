@@ -1,13 +1,13 @@
 import express from "express";
 import createHttpError from "http-errors";
-import { Review, User } from "../../db/models/index.js";
+import { Review, Product } from "../../db/models/index.js";
 
 const reviewsRouter = express.Router();
 
 reviewsRouter.post("/", async (req, res, next) => {
   try {
-    const { reviewId } = await Review.create(req.body);
-    res.status(201).send(`Review with id ${reviewId} was created successfully`);
+    const { id } = await Review.create(req.body);
+    res.status(201).send(`Review with id ${id} was created successfully`);
   } catch (error) {
     next(error);
   }
@@ -19,7 +19,7 @@ reviewsRouter.get("/", async (req, res, next) => {
       attributes: {
         exclude: ["createdAt", "updatedAt"],
       },
-      include: { model: User },
+      include: { model: Product },
     });
     res.send(reviews);
   } catch (error) {
@@ -29,7 +29,9 @@ reviewsRouter.get("/", async (req, res, next) => {
 
 reviewsRouter.get("/:reviewId", async (req, res, next) => {
   const reviewId = req.params.reviewId;
-  const review = await Review.findByPk(reviewId);
+  const review = await Review.findByPk(reviewId, {
+    include: { model: Product },
+  });
   if (review) {
     res.send(review);
   } else {
@@ -43,7 +45,7 @@ reviewsRouter.put("/:reviewId", async (req, res, next) => {
     const [numberOfUpdatedReviews, updatedReviews] = await Review.update(
       req.body,
       {
-        where: { reviewId: reviewId },
+        where: { id: reviewId },
         returning: true,
       }
     );
@@ -61,7 +63,7 @@ reviewsRouter.delete("/:reviewId", async (req, res, next) => {
   try {
     const reviewId = req.params.reviewId;
     const numberOfDeletedReviews = await Review.destroy({
-      where: { reviewId: reviewId },
+      where: { id: reviewId },
     });
     if (numberOfDeletedReviews) {
       res.status(204).send();
