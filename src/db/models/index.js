@@ -23,10 +23,13 @@ Product.belongsToMany(Category, {
   onDelete: "CASCADE",
 });
 
-User.hasMany(Cart, { onDelete: "CASCADE" });
+User.hasMany(Cart, { onDelete: "CASCADE", foreignKey: { allowNull: false } });
 Cart.belongsTo(User, { onDelete: "CASCADE" });
 
-Product.hasMany(Cart, { onDelete: "CASCADE" });
+Product.hasMany(Cart, {
+  onDelete: "CASCADE",
+  foreignKey: { allowNull: false },
+});
 Cart.belongsTo(Product, { onDelete: "CASCADE" });
 
 export { Product, Review, Category, ProductCategory, User, Cart };
